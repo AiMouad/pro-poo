@@ -1,7 +1,7 @@
 package sample;
-
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
+import javafx.animation.RotateTransition;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -11,6 +11,7 @@ import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
@@ -30,12 +31,11 @@ public class Controller implements Initializable {
     @FXML
     private Rectangle rectangle;
 
-     @FXML
+    @FXML
     private Button restartButton;
 
     @FXML
     private ImageView imageView;
-
 
     private int score = 0;
     private boolean gameOver = false;
@@ -67,6 +67,7 @@ public class Controller implements Initializable {
                 if (circle.getLayoutY() >= bounds.getMaxY() - circle.getRadius()) {
                     gameOver = true;
                     System.err.println("Game Over! Final Score: " + score);
+                    stopRotation(rotateTransition); // Stop the rotation
                 }
 
                 // Check for collision with rectangle
@@ -82,6 +83,8 @@ public class Controller implements Initializable {
         }
     }));
 
+    private RotateTransition rotateTransition;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         timeline.setCycleCount(Animation.INDEFINITE);
@@ -89,6 +92,16 @@ public class Controller implements Initializable {
 
         Image image = new Image(getClass().getResourceAsStream("/sample/rm251-mind-01-a.jpg"));
         imageView.setImage(image);
+
+        ImagePattern imagePattern = new ImagePattern(new Image(getClass().getResourceAsStream("/sample/sphere_6181270.png")));
+        circle.setFill(imagePattern);
+
+        rotateTransition = new RotateTransition(Duration.seconds(2), circle);
+        rotateTransition.setByAngle(360); // Rotate by 360 degrees
+        rotateTransition.setCycleCount(RotateTransition.INDEFINITE); // Repeat indefinitely
+        rotateTransition.play(); // Start the animation
+
+        
 
         // Add mouse event handler for moving the rectangle horizontally
         scene.setOnMouseMoved(new EventHandler<MouseEvent>() {
@@ -99,8 +112,11 @@ public class Controller implements Initializable {
             }
         });
 
+        
+
         restartButton.setOnAction(event -> restartGame());
     }
+
     private void restartGame() {
         score = 0;
         gameOver = false;
@@ -108,5 +124,11 @@ public class Controller implements Initializable {
         circle.setLayoutX(150);
         circle.setLayoutY(20);
         // You can add more reset logic here
+    }
+
+    private void stopRotation(RotateTransition rotateTransition) {
+        if (gameOver) {
+            rotateTransition.stop();
+        }
     }
 }
