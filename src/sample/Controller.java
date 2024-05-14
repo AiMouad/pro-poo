@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.ImagePattern;
@@ -36,6 +37,9 @@ public class Controller implements Initializable {
 
     @FXML
     private ImageView imageView;
+
+    @FXML
+    private Label scoreLabel;
 
     private int score = 0;
     private int scoreCount = 0;
@@ -70,6 +74,7 @@ public class Controller implements Initializable {
                 if (circle.getLayoutY() >= bounds.getMaxY() - circle.getRadius()) {
                     gameOver = true;
                     System.err.println("Game Over! Final Score: " + score);
+                    scoreLabel.setText("Score: " + score);
                     stopRotation(rotateTransition);
                 }
 
@@ -144,6 +149,7 @@ public class Controller implements Initializable {
                     System.err.println("Game Over! Final Score: " + score);
                     stopRotation(rotateTransition);
                 }
+                
     
                 if (circle.getBoundsInParent().intersects(rectangle.getBoundsInParent())) {
                     deltaY *= -1;
@@ -170,4 +176,6 @@ public class Controller implements Initializable {
             rotateTransition.stop();
         }
     }
+
+    
 }
