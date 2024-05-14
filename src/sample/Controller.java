@@ -1,4 +1,5 @@
 package sample;
+
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.RotateTransition;
@@ -38,55 +39,55 @@ public class Controller implements Initializable {
     private ImageView imageView;
 
     private int score = 0;
+    private int scoreCount = 0;
     private boolean gameOver = false;
+    private double deltaX;
+    private double deltaY;
 
-    // 1 Frame every 15 milliseconds, which means approximately 66.67 FPS
-    Timeline timeline = new Timeline(new KeyFrame(Duration.millis(15), new EventHandler<ActionEvent>() {
+    Timeline timeline;
+    RotateTransition rotateTransition;
 
-        double deltaX = -2;
-        double deltaY = 2;
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        deltaX = -2;
+        deltaY = 2;
 
-        @Override
-        public void handle(ActionEvent actionEvent) {
+        timeline = new Timeline(new KeyFrame(Duration.millis(15), event -> {
             if (!gameOver) {
                 circle.setLayoutX(circle.getLayoutX() + deltaX);
                 circle.setLayoutY(circle.getLayoutY() + deltaY);
 
                 Bounds bounds = scene.getBoundsInLocal();
 
-                // Check for collision with scene bounds
-                if (circle.getLayoutX() <= bounds.getMinX() + circle.getRadius() // Adjusted condition
+                if (circle.getLayoutX() <= bounds.getMinX() + circle.getRadius()
                         || circle.getLayoutX() >= bounds.getMaxX() - circle.getRadius()) {
-                    deltaX *= -1; // Reverse direction for left or right collision
+                    deltaX *= -1;
                 }
 
                 if (circle.getLayoutY() <= bounds.getMinY() + circle.getRadius()) {
-                    deltaY *= -1; // Reverse direction for top collision
+                    deltaY *= -1;
                 }
 
                 if (circle.getLayoutY() >= bounds.getMaxY() - circle.getRadius()) {
                     gameOver = true;
                     System.err.println("Game Over! Final Score: " + score);
-                    stopRotation(rotateTransition); // Stop the rotation
+                    stopRotation(rotateTransition);
                 }
 
-                // Check for collision with rectangle
                 if (circle.getBoundsInParent().intersects(rectangle.getBoundsInParent())) {
-                    // If circle touches the rectangle, reverse direction
-                    // deltaX *= -1;
                     deltaY *= -1;
-                    // Increment score
                     score++;
+                    scoreCount++;
                     System.out.println("Score: " + score);
+
+                    if (scoreCount % 2 == 0) {
+                        deltaX *= 1.1;
+                        deltaY *= 1.1;
+                    }
                 }
             }
-        }
-    }));
+        }));
 
-    private RotateTransition rotateTransition;
-
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.play();
 
@@ -97,34 +98,73 @@ public class Controller implements Initializable {
         circle.setFill(imagePattern);
 
         rotateTransition = new RotateTransition(Duration.seconds(2), circle);
-        rotateTransition.setByAngle(360); // Rotate by 360 degrees
-        rotateTransition.setCycleCount(RotateTransition.INDEFINITE); // Repeat indefinitely
-        rotateTransition.play(); // Start the animation
+        rotateTransition.setByAngle(360);
+        rotateTransition.setCycleCount(RotateTransition.INDEFINITE);
+        rotateTransition.play();
 
-        
-
-        // Add mouse event handler for moving the rectangle horizontally
         scene.setOnMouseMoved(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
-                // Set rectangle's layoutX to mouse's X position
-                rectangle.setLayoutX(mouseEvent.getX() - rectangle.getWidth() / 2); // Center the rectangle under the mouse
+                rectangle.setLayoutX(mouseEvent.getX() - rectangle.getWidth() / 2);
             }
         });
-
-        
 
         restartButton.setOnAction(event -> restartGame());
     }
 
     private void restartGame() {
         score = 0;
+        scoreCount = 0;
         gameOver = false;
-        // Reset game state, e.g., reset circle position
+    
+        // Reset ball velocity
+        deltaX = -2;
+        deltaY = 2;
+    
+        timeline.stop(); // Stop the timeline
+        timeline.getKeyFrames().clear(); // Clear existing key frames
+        // Add a new key frame with the updated duration
+        timeline.getKeyFrames().add(new KeyFrame(Duration.millis(15), event -> {
+            if (!gameOver) {
+                circle.setLayoutX(circle.getLayoutX() + deltaX);
+                circle.setLayoutY(circle.getLayoutY() + deltaY);
+    
+                Bounds bounds = scene.getBoundsInLocal();
+    
+                if (circle.getLayoutX() <= bounds.getMinX() + circle.getRadius()
+                        || circle.getLayoutX() >= bounds.getMaxX() - circle.getRadius()) {
+                    deltaX *= -1;
+                }
+    
+                if (circle.getLayoutY() <= bounds.getMinY() + circle.getRadius()) {
+                    deltaY *= -1;
+                }
+    
+                if (circle.getLayoutY() >= bounds.getMaxY() - circle.getRadius()) {
+                    gameOver = true;
+                    System.err.println("Game Over! Final Score: " + score);
+                    stopRotation(rotateTransition);
+                }
+    
+                if (circle.getBoundsInParent().intersects(rectangle.getBoundsInParent())) {
+                    deltaY *= -1;
+                    score++;
+                    scoreCount++;
+                    System.out.println("Score: " + score);
+    
+                    if (scoreCount % 2 == 0) {
+                        deltaX *= 1.1;
+                        deltaY *= 1.1;
+                    }
+                }
+            }
+        }));
+        
+        timeline.play(); // Restart the timeline with the updated duration
         circle.setLayoutX(150);
         circle.setLayoutY(20);
-        // You can add more reset logic here
     }
+    
 
     private void stopRotation(RotateTransition rotateTransition) {
         if (gameOver) {
